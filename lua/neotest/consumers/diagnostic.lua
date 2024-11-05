@@ -73,7 +73,12 @@ local function init(client)
       api.nvim_buf_del_extmark(self.bufnr, tracking_namespace, mark)
     end
   end
-
+  local function ansi2txt(input)
+    local handle = io.popen("echo '" .. input:gsub("'", "'\\''") .. "' | ansi2txt", "r")
+    local output = handle:read("*a")
+    handle:close()
+    return output
+  end
   function BufferDiagnostics:create_diagnostics(positions, results)
     local bufnr = self.bufnr
     local diagnostics = {}
@@ -111,7 +116,7 @@ local function init(client)
                 diagnostics[#diagnostics + 1] = {
                   lnum = mark[1],
                   col = col,
-                  message = error.message,
+                  message = string.gsub(ansi2txt(error.message), "\r", "\n"),
                   source = "neotest",
                   severity = config.diagnostic.severity,
                 }

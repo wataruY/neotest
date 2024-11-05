@@ -12,6 +12,13 @@ neotest.quickfix = {}
 ---@type neotest.Client
 local client
 
+local function ansi2txt(input)
+  local handle = io.popen("echo '" .. input:gsub("'", "'\\''") .. "' | ansi2txt", "r")
+  local output = handle:read("*a")
+  handle:close()
+  return output
+end
+
 local init = function()
   ---@param results table<string, neotest.Result>
   client.listeners.results = function(adapter_id, results, partial)
@@ -41,7 +48,7 @@ local init = function()
               filename = bufnr <= 0 and pos.path or nil,
               lnum = (error.line or range[1]) + 1,
               col = range[2] + 1,
-              text = error.message,
+              text = ansi2txt(error.message),
               type = result.status == "failed" and "E" or "W",
             }
           end
